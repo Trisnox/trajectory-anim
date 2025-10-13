@@ -1,0 +1,91 @@
+site_name: Trajectory Anim
+site_description: Blender add-on to quickly animate by drawing trajectory line
+site_url: https://trisnox.github.io/trajectory-anim/
+repo_url: https://github.com/Trisnox/trajectory-anim/
+repo_name: Trisnox/trajectory-anim
+
+docs_dir: '../docs'
+site_dir: '../generated'
+
+theme:
+    name: material
+    custom_dir: '../overrides'
+    icon: 
+      repo: fontawesome/brands/github
+    palette:
+        - media: "(prefers-color-scheme: dark)"
+          scheme: slate
+          primary: deep orange
+          accent: blue
+          toggle:
+            icon: material/weather-night
+            name: Dark Mode
+            
+        - media: "(prefers-color-scheme: light)"
+          scheme: default
+          primary: white
+          accent: deep orange
+          toggle:
+            icon: material/weather-sunny
+            name: Light Mode
+            
+    features:
+        - content.code.copy
+        - navigation.footer
+        - navigation.tabs
+        - navigation.tabs.sticky
+        - navigation.sections
+        - search.suggest
+        - search.highlight
+        - search.share
+nav:
+  - index.md
+  - install.md
+  - tutorial.md
+  - Main Panel:
+    - main_panel/index.md
+    - Target List: main_panel/target_enum.md
+    - Animate Position: main_panel/animate_position.md
+    - Animate Rotation: main_panel/animate_rotation.md
+    - Keyframe Settings: main_panel/keyframe_setting.md
+  - Stroke Panel:
+    - stroke_panel/index.md
+  - Annotation Panel:
+    - annotation_panel/index.md
+  - Grease Pencil Panel:
+    - grease_pencil_panel/index.md
+  - Other:
+    - Timing Chart: other/timing_chart.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/Trisnox/trajectory-anim/
+
+markdown_extensions:
+  - attr_list
+  - md_in_html
+  - admonition
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+
+plugins:
+  - search:
+        lang:
+            - en
+  - glightbox
+  - mkdocs-video:
+      video_autoplay: False
+  - open-in-new-tab
+  - section-index
