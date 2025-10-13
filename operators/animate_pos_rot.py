@@ -85,6 +85,7 @@ def auto_determine_axis(points: list[Vector]):
 
     return track_axis, up_axis
 
+
 def get_rotation_difference(current_vector: Vector, next_vector: Vector, origin_offset: Vector, rotation_axis, previous_rotation: Quaternion):
     current_vector = origin_offset - current_vector.copy()
     next_vector = origin_offset - next_vector.copy()
@@ -172,7 +173,7 @@ def get_track_rotation(previous_vector: Vector, current_vector: Vector, next_vec
     return rotation_difference
 
 
-def keyframe_pairing(position: list[Vector], target_frames: int, frame_step: int, include_rotation: bool, center_rotation: Vector, only_rotate_up: bool, rotation_axis, rotation_type: str, is_reverse: bool, track_axis: str, up_axis: str, rotation_offset: Quaternion) -> list[tuple]:
+def keyframe_pairing(position: list[Vector], target_frames: int, frame_step: int, include_rotation: bool, center_rotation: Vector, only_rotate_up: bool, rotation_axis, rotation_type: str, is_reverse: bool, track_axis: str, up_axis: str, position_offset: Vector, rotation_offset: Quaternion) -> list[tuple]:
     """ Function to pair keyframe and position w/o rotation.
         Also to stretch/expand keyframe timing to fit total frames duration if it uses any.
     """
@@ -204,7 +205,7 @@ def keyframe_pairing(position: list[Vector], target_frames: int, frame_step: int
             if not index == 0:
                 index *= frame_step
 
-            keyframe_data.append([index, current_vector.copy(), rotation_difference.copy(), False])
+            keyframe_data.append([index, (current_vector.copy() + position_offset), rotation_difference.copy(), False])
 
         return keyframe_data
     
@@ -212,7 +213,7 @@ def keyframe_pairing(position: list[Vector], target_frames: int, frame_step: int
         item_length = len(position)
         step = (item_length - 1) / (target_frames - 1)
         previous_index = None
-        previous_rotation = Quaternion() # It's quaternion because it only affect get_rotation_difference
+        previous_rotation = Quaternion()
         rotation_difference = None
         previous_vector = None
 
@@ -245,7 +246,7 @@ def keyframe_pairing(position: list[Vector], target_frames: int, frame_step: int
             if not index == 0:
                 index *= frame_step
 
-            keyframe_data.append([index, position[nearest_index].copy(), rotation_difference.copy(), False])
+            keyframe_data.append([index, (position[nearest_index].copy() + position_offset), rotation_difference.copy(), False])
 
     return keyframe_data
 
@@ -262,8 +263,7 @@ def process_keyframe(context: bpy.types.Context, keyframe_data: list, target_obj
     # Note to self: always copy vector if you want to do operation on them, especially on animation...
     first_position = keyframe_data[0][1].copy()
     previous_rotation = None
-    keyframe_count = len(keyframe_data)
-    for index, (frame, location, rotation, is_rotation_negated) in enumerate(keyframe_data):
+    for frame, location, rotation, is_rotation_negated in keyframe_data:
         new_matrix = Matrix()
         frame = current_frame + frame
         is_using_matrix_location = False
@@ -488,6 +488,9 @@ def process_animate(context: bpy.types.Context, animate_position: bool, animate_
     up_axis = scene.TrajectAnim_up_axis.axis
     only_rotate_up = main_prop.only_rotate_up
 
+    position_offset_prop = scene.TrajectAnim_position_offset
+    position_offset = Vector((position_offset_prop.x, position_offset_prop.y, position_offset_prop.z))
+
     rotation_offset_prop = scene.TrajectAnim_rotation_offset
     rotation_offset = Euler((rotation_offset_prop.x, rotation_offset_prop.y, rotation_offset_prop.z), 'XYZ')
 
@@ -623,7 +626,7 @@ def process_animate(context: bpy.types.Context, animate_position: bool, animate_
         center_rotation = scene.cursor.location
 
     rotation_type = 'PATH' if animate_position is True else 'ROTATION'
-    keyframe_data = keyframe_pairing(points, target_frames, frame_step, animate_rotation, center_rotation, only_rotate_up, rotation_axis, rotation_type, reverse_path, track_axis, up_axis, rotation_offset)
+    keyframe_data = keyframe_pairing(points, target_frames, frame_step, animate_rotation, center_rotation, only_rotate_up, rotation_axis, rotation_type, reverse_path, track_axis, up_axis, position_offset, rotation_offset)
     
     previous_target = None
     previous_keyframe_data = None

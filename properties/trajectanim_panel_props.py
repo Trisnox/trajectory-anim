@@ -196,6 +196,29 @@ class RotationAxis(PropertyGroup):
     z: BoolProperty(default=True)
 
 
+class PositionOffset(PropertyGroup):
+    x: FloatProperty(
+        name='Position Offset X',
+        description='Position used to offset when using Animate Position.',
+        subtype='DISTANCE',
+        default=0.0,
+    )
+
+    y: FloatProperty(
+        name='Position Offset Y',
+        description='Position used to offset when using Animate Position.',
+        subtype='DISTANCE',
+        default=0.0,
+    )
+
+    z: FloatProperty(
+        name='Position Offset Y',
+        description='Position used to offset when using Animate Position.',
+        subtype='DISTANCE',
+        default=0.0,
+    )
+    
+
 class RotationOffset(PropertyGroup):
     x: FloatProperty(
         name='Rotation Offset X',
@@ -245,7 +268,7 @@ class TrackAxis(PropertyGroup):
 
 class UpAxis(PropertyGroup):
     axis: EnumProperty(
-        name='Track Axis',
+        name='Up Axis',
         description='',
         items=(
             ('X', 'X', ''),
@@ -261,6 +284,7 @@ def register():
     bpy.types.Scene.TrajectAnim_target = PointerProperty(type=TargetCollection)
     bpy.types.Scene.TrajectAnim_movement_axis = PointerProperty(type=MovementAxis)
     bpy.types.Scene.TrajectAnim_rotation_axis = PointerProperty(type=RotationAxis)
+    bpy.types.Scene.TrajectAnim_position_offset = PointerProperty(type=PositionOffset)
     bpy.types.Scene.TrajectAnim_rotation_offset = PointerProperty(type=RotationOffset)
     bpy.types.Scene.TrajectAnim_track_axis = PointerProperty(type=TrackAxis)
     bpy.types.Scene.TrajectAnim_up_axis = PointerProperty(type=UpAxis)
@@ -269,6 +293,7 @@ def unregister():
     del bpy.types.Scene.TrajectAnim_up_axis
     del bpy.types.Scene.TrajectAnim_track_axis
     del bpy.types.Scene.TrajectAnim_rotation_offset
+    del bpy.types.Scene.TrajectAnim_position_offset
     del bpy.types.Scene.TrajectAnim_rotation_axis
     del bpy.types.Scene.TrajectAnim_movement_axis
     del bpy.types.Scene.TrajectAnim_target

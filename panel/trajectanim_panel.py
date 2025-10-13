@@ -76,6 +76,8 @@ class TRAJECTANIM_SETTINGS_PANEL(TRAJECTANIM_PANEL, bpy.types.Panel):
         layout.alignment = 'RIGHT'
         scene = context.scene
         main_prop = scene.TrajectAnim_main_props
+        movement_axis_prop = scene.TrajectAnim_movement_axis
+        rotation_axis_prop = scene.TrajectAnim_rotation_axis
         stroke_prop = scene.TrajectAnim_stroke_props
 
         # If blender API could make the enum box width smaller, I wouldn't have done this
@@ -148,24 +150,8 @@ class TRAJECTANIM_SETTINGS_PANEL(TRAJECTANIM_PANEL, bpy.types.Panel):
         col.prop(main_prop, 'reverse_path', text='Reverse Path')
         col.prop(main_prop, 'delete_after_animate', text='Delete After')
 
-
-class TRAJECTANIM_TRACK_SETTINGS_PANEL(TRAJECTANIM_PANEL, bpy.types.Panel):
-    bl_idname = 'OBJECT_PT_trajectanim_track_settings_panel'
-    bl_parent_id = 'OBJECT_PT_trajectanim_settings_panel'
-    bl_label = 'Track Settings'
-    bl_order = 0
-    bl_options = {'DEFAULT_CLOSED'}
-
-    def draw(self, context):
-        layout = self.layout
-        scene = context.scene
-        main_prop = scene.TrajectAnim_main_props
-        movement_axis_prop = scene.TrajectAnim_movement_axis
-        rotation_axis_prop = scene.TrajectAnim_rotation_axis
-        track_axis_prop = scene.TrajectAnim_track_axis
-        up_axis_prop = scene.TrajectAnim_up_axis
-
-        layout.enabled = main_prop.rotate_along_path
+        col = layout.column()
+        col.separator(factor=1, type='LINE')
 
         col = layout.column()
         col.label(text='Movement Axis:')
@@ -186,8 +172,22 @@ class TRAJECTANIM_TRACK_SETTINGS_PANEL(TRAJECTANIM_PANEL, bpy.types.Panel):
         grid.prop(rotation_axis_prop, 'y', text='Y', toggle=1)
         grid.prop(rotation_axis_prop, 'z', text='Z', toggle=1)
 
-        col = layout.column()
-        col.separator(factor=1, type='LINE')
+
+class TRAJECTANIM_TRACK_SETTINGS_PANEL(TRAJECTANIM_PANEL, bpy.types.Panel):
+    bl_idname = 'OBJECT_PT_trajectanim_track_settings_panel'
+    bl_parent_id = 'OBJECT_PT_trajectanim_settings_panel'
+    bl_label = 'Track Settings'
+    bl_order = 0
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        main_prop = scene.TrajectAnim_main_props
+        track_axis_prop = scene.TrajectAnim_track_axis
+        up_axis_prop = scene.TrajectAnim_up_axis
+
+        layout.enabled = main_prop.rotate_along_path
 
         col = layout.column()
         col.prop(main_prop, 'only_rotate_up', text='Only Rotate Up')
@@ -206,11 +206,44 @@ class TRAJECTANIM_TRACK_SETTINGS_PANEL(TRAJECTANIM_PANEL, bpy.types.Panel):
         col = layout.column()
         col.label(text=f'Previous Automatic Axis: {main_prop.previous_axis}')
 
+
+class TRAJECTANIM_POSITION_OFFSET_PANEL(TRAJECTANIM_PANEL, bpy.types.Panel):
+    bl_idname = 'OBJECT_PT_trajectanim_position_offset_panel'
+    bl_parent_id = 'OBJECT_PT_trajectanim_settings_panel'
+    bl_label = 'Position Offset'
+    bl_order = 1
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def draw(self, context):
+        layout = self.layout
+        scene = context.scene
+        main_prop = scene.TrajectAnim_main_props
+        position_offset = scene.TrajectAnim_position_offset
+        
+        row = layout.split(factor=0.5)
+        row.alignment = 'RIGHT'
+        row.label(text='Offset Position X')
+        row = row.row()
+        row.prop(position_offset, 'x', text='')
+        
+        row = layout.split(factor=0.5)
+        row.alignment = 'RIGHT'
+        row.label(text='Y')
+        row = row.row()
+        row.prop(position_offset, 'y', text='')
+
+        row = layout.split(factor=0.5)
+        row.alignment = 'RIGHT'
+        row.label(text='Z')
+        row = row.row()
+        row.prop(position_offset, 'z', text='')
+
+
 class TRAJECTANIM_ROTATION_OFFSET_PANEL(TRAJECTANIM_PANEL, bpy.types.Panel):
     bl_idname = 'OBJECT_PT_trajectanim_rotation_offset_panel'
     bl_parent_id = 'OBJECT_PT_trajectanim_settings_panel'
     bl_label = 'Rotation Offset'
-    bl_order = 1
+    bl_order = 2
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
@@ -252,7 +285,7 @@ class TRAJECTANIM_ROTATION_FLIP_PANEL(TRAJECTANIM_PANEL, bpy.types.Panel):
     bl_idname = 'OBJECT_PT_trajectanim_rotation_flip_panel'
     bl_parent_id = 'OBJECT_PT_trajectanim_settings_panel'
     bl_label = 'Flip Detection'
-    bl_order = 2
+    bl_order = 3
     bl_options = {'DEFAULT_CLOSED'}
 
     def draw(self, context):
