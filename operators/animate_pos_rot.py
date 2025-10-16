@@ -253,14 +253,15 @@ def keyframe_pairing(position: list[Vector], target_frames: int, frame_step: int
 
 # This can be improved by passing argument that determine whether it should calculate position only, rotation only, or both
 # Right now, it will calculate both position and rotation regardless, though it's already fast as is, as such this can be put into lower priority
-def process_keyframe(context: bpy.types.Context, keyframe_data: list, target_object: bpy.types.Object|bpy.types.PoseBone, relative_path: bool, initial_rotation: bool, orientation_location: str, orientation_rotation: str, movement_axis, rotation_type: str, smooth_flips: bool, flip_threshold: float):
+# I probably should rewrite this function
+# It's kind of a mess
+def process_keyframe(context: bpy.types.Context, keyframe_data: list, armature_object: bpy.types.Object, target_object: bpy.types.Object|bpy.types.PoseBone, relative_path: bool, initial_rotation: bool, orientation_location: str, orientation_rotation: str, movement_axis, rotation_type: str, smooth_flips: bool, flip_threshold: float):
     """ Function to properly set keyframe timing correspond to current frame, as well transform position
         and rotation correspond to global or local axis
     """
     current_frame = context.scene.frame_current
     keyframes = []
 
-    # Note to self: always copy vector if you want to do operation on them, especially on animation...
     first_position = keyframe_data[0][1].copy()
     previous_rotation = None
     for frame, location, rotation, is_rotation_negated in keyframe_data:
@@ -268,6 +269,7 @@ def process_keyframe(context: bpy.types.Context, keyframe_data: list, target_obj
         frame = current_frame + frame
         is_using_matrix_location = False
         is_using_matrix_rotation = False
+        is_bone = False
 
         if relative_path:
             location -= first_position
@@ -283,17 +285,23 @@ def process_keyframe(context: bpy.types.Context, keyframe_data: list, target_obj
         if isinstance(target_object, bpy.types.Object):
             matrix = target_object.matrix_world.copy()
         else:
+            is_bone = True
+            matrix_local = target_object.matrix_basis.copy()
             matrix = target_object.matrix.copy()
+            armature_matrix = armature_object.matrix_world.copy()
+            matrix = armature_matrix @ matrix
         matrix_inverted = matrix.copy().inverted()
 
         object_location, object_rotation, object_scale = matrix.decompose()
-        if not initial_rotation:
+
+        # Since bone rely on world matrix, we cannot just reset the rotation, instead we re-define it when needed
+        if (not initial_rotation and not is_bone):
             object_rotation = Quaternion()
 
         location_matrix = Matrix.Translation(object_location)
         rotation_matrix = object_rotation.to_matrix().to_4x4()
         scale_matrix = Matrix.Scale(object_scale[0],4,(1,0,0)) * Matrix.Scale(object_scale[1],4,(0,1,0)) @ Matrix.Scale(object_scale[2],4,(0,0,1))
-
+        
         new_matrix = scale_matrix
 
         if orientation_rotation == 'GLOBAL':
@@ -301,14 +309,17 @@ def process_keyframe(context: bpy.types.Context, keyframe_data: list, target_obj
             rotation = rotation.to_matrix().to_4x4()
 
             new_matrix = rotation @ rotation_matrix @ new_matrix
+            
         else:
             # Applicable for location. This allows for moving object in global axis even if the object initial rotation transform is not applied
             if orientation_location == 'GLOBAL':
                 new_matrix = rotation_matrix @ new_matrix
 
-            if target_object.rotation_mode == 'QUATERNION' and not initial_rotation:
+            if not initial_rotation:
+                object_rotation = Quaternion()
+            elif target_object.rotation_mode == 'QUATERNION':
                 object_rotation = target_object.rotation_quaternion
-            elif not initial_rotation:
+            else:
                 object_rotation = target_object.rotation_euler.to_quaternion()
 
             transformed_rotation = object_rotation @ rotation # simply swapping makes it rotate along local... huh...
@@ -319,16 +330,31 @@ def process_keyframe(context: bpy.types.Context, keyframe_data: list, target_obj
 
             if relative_path:
                 new_matrix = location @ location_matrix @ new_matrix
+
             else:
                 new_matrix = location @ new_matrix
+
         else:
-            local_transform = location @ matrix_inverted
+            if not is_bone:
+                local_transform = location @ matrix_inverted
+            else:
+                local_transform = location
 
             if relative_path:
                 transformed_location = local_transform + object_location
             else:
                 transformed_location = local_transform
-            
+
+            if is_bone:
+                transformed_location -= object_location
+        
+        # Rotating pose bone along global axis was somewhat harder...
+        if is_bone:
+            new_matrix = matrix_inverted @ new_matrix
+
+            if initial_rotation:
+                new_matrix = matrix_local @ new_matrix
+
         new_transformed_location, new_transformed_rotation, _ = new_matrix.decompose()
         if is_using_matrix_location:
             transformed_location = new_transformed_location
@@ -595,33 +621,41 @@ def process_animate(context: bpy.types.Context, animate_position: bool, animate_
 
     if main_prop.target_behaviour == 'SELECTED':
         if context.mode == 'POSE':
-            objects = [(active_object, bone) for bone in context.selected_pose_bones]
+            items = [bone for bone in context.selected_pose_bones]
+            items.remove(context.active_pose_bone)
+            items.insert(0, context.active_pose_bone)
+            objects = [(active_object, bone) for bone in items]
         else:
-            objects = [(obj, None) for obj in context.selected_objects if not obj.type in ('ARMATURE', 'GREASEPENCIL', 'CURVE')]
+            items = [obj for obj in context.selected_objects if not obj.type in ('ARMATURE', 'GREASEPENCIL', 'CURVE')]
+            if not active_object.type in ('ARMATURE', 'GREASEPENCIL', 'CURVE'):
+                items.remove(active_object)
+                items.insert(0, active_object)
+
+            objects = [(obj, None) for obj in items]
     else:
-        objects = [(object, None) for object in target_prop.objects]
+        objects = []
+
+        for object in target_prop.objects:
+            bone_name = object.bone_name
+            is_armature = bool(bone_name)
+            object = object.object
+
+            if is_armature:
+                for bone in object.pose.bones:
+                    if bone.name == bone_name:
+                        objects.append((object, bone))
+                        break
+            else:
+                objects.append((object, None))
+
      
     if main_prop.rotation_center == 'OBJECT':
-        if main_prop.target_behaviour == 'SELECTED':
-            first_object, first_bone = objects[0]
-            if first_bone is not None:
-                center_rotation = first_object.location + first_bone.location
-            else:
-                center_rotation = first_object.location
+        first_object, first_bone = objects[0]
+        if first_bone is not None:
+            first_bone_location, _, _ = first_bone.matrix.decompose()
+            center_rotation = first_object.location + first_bone_location
         else:
-            first_item = objects[0][0]
-            first_object = first_item.object
-            first_bone_name = first_item.bone_name
-            if first_bone_name:
-                for bone in first_object.pose.bones:
-                    bone_name = bone.name
-                    if bone_name == first_bone_name:
-                        first_bone = bone
-                        break
-
-                center_rotation = first_object.location + first_bone.loccation
-            else:
-                center_rotation = first_object.location
+            center_rotation = first_object.location
     else:
         center_rotation = scene.cursor.location
 
@@ -632,28 +666,30 @@ def process_animate(context: bpy.types.Context, animate_position: bool, animate_
     previous_keyframe_data = None
     for object, bone in objects:
         is_armature = bool(bone)
-        if main_prop.target_behaviour == 'LIST':
-            bone_name = object.bone_name
-            is_armature = bool(bone_name)
-            object = object.object
-            object_name = object.name
-        else:
-            bone_name = bone.name if is_armature else ''
-            object_name = object.name
+
+        bone_name = bone.name if is_armature else ''
+        object_name = object.name
 
         action = get_action(object, object_name)
 
         data_path_mode = 'ARMATURE' if is_armature else 'OBJECT'
-        rotation_mode = 'QUATERNION' if object.rotation_mode == 'QUATERNION' else 'EULER'
-        if object.rotation_mode == 'AXIS_ANGLE':
-            raise RuntimeError('Unsupported rotation mode. Please use either Quaternion or Euler (XYZ)')
+        if is_armature:
+            rotation_mode = 'QUATERNION' if bone.rotation_mode == 'QUATERNION' else 'EULER'
+            if bone.rotation_mode == 'AXIS_ANGLE':
+                raise RuntimeError('Unsupported rotation mode. Please use either Quaternion or Euler (XYZ)')
+            
+        else:
+            rotation_mode = 'QUATERNION' if object.rotation_mode == 'QUATERNION' else 'EULER'
+            if object.rotation_mode == 'AXIS_ANGLE':
+                raise RuntimeError('Unsupported rotation mode. Please use either Quaternion or Euler (XYZ)')
+            
         
         target_object = bone if bone else object
         
         if previous_target == target_object:
             transformed_keyframe_data = previous_keyframe_data
         else:
-            transformed_keyframe_data = process_keyframe(context, keyframe_data, target_object, relative_path, initial_rotation, orientation_position, orientation_rotation, movement_axis, rotation_type, smooth_flips, flip_threshold)
+            transformed_keyframe_data = process_keyframe(context, keyframe_data, object, target_object, relative_path, initial_rotation, orientation_position, orientation_rotation, movement_axis, rotation_type, smooth_flips, flip_threshold)
 
         apply_animation(transformed_keyframe_data, action, data_path_mode, animate_position, animate_rotation, rotation_mode, interpolation, bone_name, map_to_zero)
 

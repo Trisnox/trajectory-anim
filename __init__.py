@@ -16,7 +16,7 @@ bl_info = {
     "author": "Trisnox",
     "description": "Add-on to quickly animate using trajectory line",
     "blender": (4, 3, 0),
-    "version": (1, 1, 0),
+    "version": (1, 2, 0),
     "location": "View3D > Sidebar > TrajectAnim",
     "warning": "",
     "category": "Animation",

@@ -48,6 +48,9 @@ class TRAJECTANIM_TARGET_PANEL(TRAJECTANIM_PANEL, bpy.types.Panel):
                 items = context.selected_pose_bones
             else:
                 items = [obj for obj in context.selected_objects if not obj.type in ('ARMATURE', 'GREASEPENCIL', 'CURVE')]
+                if context.active_object and not context.active_object.type in ('ARMATURE', 'GREASEPENCIL', 'CURVE'):
+                    items.remove(context.active_object)
+                    items.insert(0, context.active_object)
 
             for object in items:
                 if context.mode == 'POSE':
@@ -79,6 +82,13 @@ class TRAJECTANIM_SETTINGS_PANEL(TRAJECTANIM_PANEL, bpy.types.Panel):
         movement_axis_prop = scene.TrajectAnim_movement_axis
         rotation_axis_prop = scene.TrajectAnim_rotation_axis
         stroke_prop = scene.TrajectAnim_stroke_props
+
+        row = layout.row()
+        row.alignment = 'CENTER'
+        row.prop(main_prop, 'auto_cursor', text='Set 3D Cursor Automatically')
+
+        col = layout.column()
+        col.separator(factor=1, type='LINE')
 
         # If blender API could make the enum box width smaller, I wouldn't have done this
         # The goal is to make text aligned to the right, and make the box smaller so that the text will fit without truncation

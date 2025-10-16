@@ -27,6 +27,12 @@ class TargetCollection(PropertyGroup):
 
 
 class TrajectAnimPanelProperty(PropertyGroup):
+    auto_cursor: BoolProperty(
+        name='Set 3D Cursor Automatically',
+        description='When turned on, 3D cursor will be set depending on the first item in target list. Does not work for pose bones when using "Selected".',
+        default=False,
+    )
+
     position_orientation: EnumProperty(
         name='Position Transformation Orientation',
         description='Property to define how transformation are applied',

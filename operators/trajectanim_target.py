@@ -4,17 +4,39 @@ import bpy
 def add_object(context: bpy.types.Context):
     scene = context.scene
     target_prop = scene.TrajectAnim_target
+    main_prop = context.scene.TrajectAnim_main_props
+    auto_cursor = main_prop.auto_cursor
+
+    if auto_cursor and len(target_prop.objects) == 0:
+        if context.mode == 'POSE':
+            active_object = context.active_object
+            active_bone = context.active_pose_bone
+            bone_location, _, _ = active_bone.matrix.decompose()
+            
+            context.scene.cursor.location = active_object.location + bone_location
+        else:
+            context.scene.cursor.location = context.active_object.location
 
     if context.mode == 'POSE':
         active_object = context.active_object
-        for bone in context.selected_pose_bones:
+        active_bone = context.active_pose_bone
+        items = context.selected_pose_bones
+        items.remove(active_bone)
+        items.insert(0, active_bone)
+
+        for bone in items:
             target = target_prop.objects.add()
             target.object = active_object
             target.name = bone.name
             target.icon = 'BONE_DATA'
             target.bone_name = bone.name
     else:
-        for object in context.selected_objects:
+        active_object = context.active_object
+        items = context.selected_objects
+        items.remove(active_object)
+        items.insert(0, active_object)
+
+        for object in items:
             target = target_prop.objects.add()
             target.object = object
             target.icon = f'OUTLINER_OB_{object.type}'
