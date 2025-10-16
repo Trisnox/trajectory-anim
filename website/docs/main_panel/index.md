@@ -14,6 +14,7 @@ title: Main Panel
 - Target Enum: List of affected objects or bones
 
 ## Settings
+- Set 3D Cursor Automatically: When enabled, 3D cursor will be automatically snapped to active object. Does not work for pose bone when using `Selected`
 - Position Orientation: Whether to move based off global or local axis
 - Rotation Orientation: Whether to rotate based off global or local axis
 - Rotation Center: Origin used to calculate the rotation of a stroke
