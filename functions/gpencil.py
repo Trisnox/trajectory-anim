@@ -2,7 +2,8 @@ import bpy
 from mathutils import Vector
 
 
-def get_active_gpencil_frame(gpencil: bpy.types.GreasePencilv3) -> bpy.types.GreasePencilFrame:
+# gpencil type:  GreasePencilv3 / GreasePencil
+def get_active_gpencil_frame(gpencil) -> bpy.types.GreasePencilFrame:
     """
         Function to return active frame of a grease pencil
     """

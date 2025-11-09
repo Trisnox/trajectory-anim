@@ -5,7 +5,8 @@ from ..functions import curve as curve_func
 from ..functions import annotation as annotation_func
 
 
-def convert_stroke(annotation: bpy.types.GPencilStroke) -> list[Vector]:
+# annotation type: : GPencilStroke / AnnotationStroke
+def convert_stroke(annotation) -> list[Vector]:
     position = []
     points = annotation.points
     for vector in points:
@@ -13,7 +14,9 @@ def convert_stroke(annotation: bpy.types.GPencilStroke) -> list[Vector]:
     
     return position
 
-def convert_intersection(annotation: list[bpy.types.GPencilStroke]) -> list[Vector]:
+
+# annotation type: list[GPencilStroke / AnnotationStroke]
+def convert_intersection(annotation) -> list[Vector]:
     source_stroke = [vector.co for vector in annotation[0].points]
     stroke_targets = []
     for stroke in annotation[1:]:

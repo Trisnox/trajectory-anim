@@ -1,9 +1,18 @@
 import bpy
 
 
+# 5.0 RNA types related to annotation are renamed, while grease pencil only have some renamed
+# https://developer.blender.org/docs/release_notes/5.0/python_api/#annotations-grease-pencil
+def is_using_5_0():
+    return bpy.app.version >= (5, 0, 0)
+
+
 def gpencil_init(context: bpy.types.Context):
     gpencil_name = 'trajectory_gpencil'
-    gpencil_data = bpy.data.grease_pencils_v3.new(name=gpencil_name + '_data')
+    if is_using_5_0():
+        gpencil_data = bpy.data.grease_pencils.new(name=gpencil_name + '_data')
+    else:
+        gpencil_data = bpy.data.grease_pencils_v3.new(name=gpencil_name + '_data')
     gpencil_object = bpy.data.objects.new(gpencil_name, gpencil_data)
     context.collection.objects.link(gpencil_object)
     gpencil_object.show_in_front = True

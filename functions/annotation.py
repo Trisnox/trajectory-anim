@@ -1,7 +1,8 @@
 import bpy
 
 
-def get_active_annotation_frame(context: bpy.types.Context = None, annotation: bpy.types.GreasePencil = None):
+# annotation type: GreasePencil / Annotation
+def get_active_annotation_frame(context: bpy.types.Context = None, annotation = None):
     """
         Function to return active frame of an annotation
     """

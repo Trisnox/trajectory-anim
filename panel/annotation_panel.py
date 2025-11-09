@@ -1,6 +1,12 @@
 import bpy
 
 
+# 5.0 RNA types related to annotation are renamed, while grease pencil only have some renamed
+# https://developer.blender.org/docs/release_notes/5.0/python_api/#annotations-grease-pencil
+def is_using_5_0():
+    return bpy.app.version >= (5, 0, 0)
+
+
 class ANNOTATION_PANEL(bpy.types.Panel):
     bl_category = 'TrajectAnim'
     bl_idname = 'OBJECT_PT_trajectanim_annotation_panel'
@@ -15,13 +21,24 @@ class ANNOTATION_PANEL(bpy.types.Panel):
         scene = context.scene
         annotation_prop = scene.TrajectAnim_annotation_props
         
-        if not bpy.data.grease_pencils:
-            col = layout.column()
-            col.label(text='No active annotation.')
-            col.label(text='Start drawing using annotation tool!')
-            return
+        if is_using_5_0():
+            if not bpy.data.annotations:
+                col = layout.column()
+                col.label(text='No active annotation.')
+                col.label(text='Start drawing using annotation tool!')
+                return
+        else:
+            if not bpy.data.grease_pencils:
+                col = layout.column()
+                col.label(text='No active annotation.')
+                col.label(text='Start drawing using annotation tool!')
+                return
 
-        annotation_data = bpy.data.grease_pencils['Annotations']
+
+        if is_using_5_0():
+            annotation_data = bpy.data.annotations['Annotations']
+        else:
+            annotation_data = bpy.data.grease_pencils['Annotations']
         active_layer_index = annotation_data.layers.active_index
         active_layer = annotation_data.layers[active_layer_index]
 
