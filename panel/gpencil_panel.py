@@ -37,7 +37,7 @@ class GREASE_PENCIL_PANEL(bpy.types.Panel):
         col.separator(factor=2, type='LINE')
 
         # Slight problem here, appearantly grease pencil layers does not have active index
-        # layers.active simply return the active layer object
+        # layers.active simply return the active layer object, an index is required for UILayout.template_list
         # https://docs.blender.org/api/current/bpy.types.GreasePencilv3Layers.html#bpy.types.GreasePencilv3Layers
         # https://docs.blender.org/api/current/bpy.types.GreasePencilLayer.html#bpy.types.GreasePencilLayer
         if not gpencil == active_gpencil:

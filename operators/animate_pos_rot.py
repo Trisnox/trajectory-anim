@@ -541,7 +541,7 @@ def process_animate(context: bpy.types.Context, animate_position: bool, animate_
     if stroke_mode == 'AUTO':
         if active_object and active_object.type == 'GREASEPENCIL':
             stroke_mode = 'GPENCIL'
-        elif active_object.type == 'CURVE':
+        elif active_object and active_object.type == 'CURVE':
             stroke_mode = 'CURVE'
         else:
             stroke_mode = 'ANNOTATION'

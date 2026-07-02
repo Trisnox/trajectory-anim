@@ -1,6 +1,12 @@
 import bpy
 
 
+# 5.2 has update regarding annotation, they now have function to modify strokes and points
+# https://developer.blender.org/docs/release_notes/5.2/python_api/#annotations
+def is_using_5_2():
+    return bpy.app.version >= (5, 2, 0)
+
+
 class STROKE_PANEL(bpy.types.Panel):
     bl_category = 'TrajectAnim'
     bl_idname = 'OBJECT_PT_trajectanim_stroke_panel'
@@ -51,9 +57,17 @@ class STROKE_PANEL(bpy.types.Panel):
 
             col = layout.column()
             col.operator('gpencil.annotation_active_frame_delete', text='Delete Active Frame', icon='X')
+            if is_using_5_2():
+                col.operator('trajectanim.clear_excess_strokes', text='Clear excess strokes', icon='OUTLINER_OB_CURVES')
+                col.operator('trajectanim.clear_all_strokes', text='Clear All Strokes', icon='GP_SELECT_STROKES')
             
             col = layout.column()
             col.separator(factor=2, type='LINE')
+
+            if is_using_5_2():
+                col = layout.column()
+                col.operator('trajectanim.intersect_stroke', text='Self Intersect', icon='STROKE')
+                col.prop(stroke_prop, 'self_intersect_method', text='Intersection Method', icon='SNAP_MIDPOINT')
 
             col = layout.column()
             col.operator('trajectanim.annotation_to_curve', text='Convert to Curve', icon='CURVE_DATA')
@@ -80,6 +94,8 @@ class STROKE_PANEL(bpy.types.Panel):
 
             col = layout.column()
             col.operator('trajectanim.gpencil_to_curve', text='Convert to Curve', icon='CURVE_DATA')
+            if is_using_5_2():
+                col.operator('trajectanim.gpencil_to_annotation', text='Convert to Annotation', icon='CURVE_DATA')
             col.prop(stroke_prop, 'convert_method', text='Convert Method')
             col.prop(stroke_prop, 'keep_original', text='Keep Original')
 
@@ -90,5 +106,7 @@ class STROKE_PANEL(bpy.types.Panel):
                 return
 
             col.operator('trajectanim.curve_to_gpencil', text='Convert to Grease Pencil', icon='GREASEPENCIL')
+            if is_using_5_2():
+                col.operator('trajectanim.curve_to_annotation', text='Convert to Annotation', icon='GREASEPENCIL_LAYER_GROUP')
             col.prop(stroke_prop, 'keep_original', text='Keep Original')
 

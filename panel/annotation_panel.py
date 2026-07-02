@@ -36,9 +36,9 @@ class ANNOTATION_PANEL(bpy.types.Panel):
 
 
         if is_using_5_0():
-            annotation_data = bpy.data.annotations['Annotations']
+            annotation_data = next(iter(bpy.data.annotations), None)
         else:
-            annotation_data = bpy.data.grease_pencils['Annotations']
+            annotation_data = next(iter(bpy.data.grease_pencils), None)
         active_layer_index = annotation_data.layers.active_index
         active_layer = annotation_data.layers[active_layer_index]
 

@@ -47,8 +47,8 @@ class TrajectAnimPanelProperty(PropertyGroup):
         name='Rotation Transformation Orientation',
         description='Property to define how transformation are applied',
         items=(
-            ('GLOBAL', 'Global', 'Use global axis to orient position'),
-            ('LOCAL', 'Local', "Use local axis to orient position"),
+            ('GLOBAL', 'Global', 'Use global axis to orient rotation'),
+            ('LOCAL', 'Local', "Use local axis to orient rotation"),
         ),
         default='GLOBAL',
     )
@@ -111,7 +111,7 @@ class TrajectAnimPanelProperty(PropertyGroup):
         items=(
             ('POINTS', 'Points', 'Timing will be defined by total points of the stroke or the intersections'),
             ('DURATION', 'Duration', 'Timing will be defined by total frames, which is defined by user. ' \
-                                     'If there is less duration than the amounts of points/intersection, ' \
+                                     'If there are less duration than the amount of points/intersections, ' \
                                      'then some points will be skipped to fit the total duration.'),
         ),
         default='POINTS',

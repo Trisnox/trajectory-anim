@@ -49,8 +49,9 @@ class TRAJECTANIM_TARGET_PANEL(TRAJECTANIM_PANEL, bpy.types.Panel):
             else:
                 items = [obj for obj in context.selected_objects if not obj.type in ('ARMATURE', 'GREASEPENCIL', 'CURVE')]
                 if context.active_object and not context.active_object.type in ('ARMATURE', 'GREASEPENCIL', 'CURVE'):
-                    items.remove(context.active_object)
-                    items.insert(0, context.active_object)
+                    if context.active_object in items: # quick hotfix, idk why there are times where this removal cause error
+                        items.remove(context.active_object)
+                        items.insert(0, context.active_object)
 
             for object in items:
                 if context.mode == 'POSE':

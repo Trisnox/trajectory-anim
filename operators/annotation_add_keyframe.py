@@ -24,7 +24,7 @@ def annotation_add_blank_keyframe(context: bpy.types.Context):
 from bpy.types import Operator
 
 
-class ClearExcessStroke(Operator):
+class AnnotationAddKeyframe(Operator):
     """Add blank keyframe to annotation. Useful to hide stroke on certain keyframes"""
     bl_idname = "trajectanim.annotation_add_blank_keyframe"
     bl_label = "Annotation Add Blank Keyframe"
